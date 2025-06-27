@@ -11,6 +11,7 @@ from fastapi.security import (
     HTTPAuthorizationCredentials,
 )
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from starlette.background import BackgroundTask
 from fastapi.templating import Jinja2Templates
 import yaml
 
@@ -150,13 +151,28 @@ async def download_file(code: str):
     path = row["path"]
     oneshot = row["oneshot"] == 1
 
-    if oneshot:
-        os.remove(path)
-        cur.execute("DELETE FROM files WHERE code=?", (code,))
-        conn.commit()
-    conn.close()
-
     headers = {"X-Filename": filename}
+
+    if oneshot:
+        # remove file and DB entry after the response is sent
+        def cleanup():
+            os.remove(path)
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("DELETE FROM files WHERE code=?", (code,))
+            conn.commit()
+            conn.close()
+
+        conn.close()
+        return FileResponse(
+            path,
+            filename=filename,
+            media_type="application/octet-stream",
+            headers=headers,
+            background=BackgroundTask(cleanup),
+        )
+
+    conn.close()
     return FileResponse(path, filename=filename, media_type="application/octet-stream", headers=headers)
 
 
