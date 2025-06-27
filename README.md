@@ -33,3 +33,10 @@ commands:
 export DEVTRANS_TOKEN=deadbeefdeadbeefdeadbeefdeadbeef
 ./devtrans put path/to/file
 ```
+
+## Documentation
+
+Detailed usage instructions are available in the [docs](./docs/) directory:
+
+- [User Guide](docs/UserGuide.md) explains how to build the CLI and transfer files.
+- [Admin Guide](docs/AdminGuide.md) covers running the server and managing tokens.
