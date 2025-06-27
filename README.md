@@ -3,7 +3,7 @@
 A simple API transfer tool for small or bulk data.
 
 This repository contains the foundation for **DevTrans**, including a FastAPI
-server and a placeholder web admin panel styled with Bootstrap's Darkly theme.
+server, a web admin panel and a minimal CLI written in Go.
 
 ## Running the Server
 
@@ -15,4 +15,21 @@ uvicorn server.main:app --reload
 ```
 
 Visit `http://localhost:8000/admin` and authenticate with the credentials from
-`server.yml` to see the placeholder admin UI.
+`server.yml`.
+
+## Building the CLI
+
+The CLI lives under `cli/` and can be built with Go:
+
+```bash
+cd cli
+go build -o devtrans
+```
+
+Set `DEVTRANS_TOKEN` and optionally `DEVTRANS_BASE_URL` before running the
+commands:
+
+```bash
+export DEVTRANS_TOKEN=deadbeefdeadbeefdeadbeefdeadbeef
+./devtrans put path/to/file
+```
