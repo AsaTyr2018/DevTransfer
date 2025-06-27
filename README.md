@@ -19,19 +19,27 @@ Visit `http://localhost:8000/admin` and authenticate with the credentials from
 
 ## Building the CLI
 
-The CLI lives under `cli/` and can be built with Go:
+The CLI lives under `cli/` and can be built with Go. On Unix systems the binary
+will be called `devtrans`, while on Windows the executable needs the `.exe`
+extension:
 
 ```bash
 cd cli
+# Linux / macOS
 go build -o devtrans
+# Windows
+go build -o devtrans.exe
 ```
 
 Set `DEVTRANS_TOKEN` and optionally `DEVTRANS_BASE_URL` before running the
-commands:
+commands. Use `./devtrans` on Linux/macOS or `devtrans.exe` on Windows:
 
 ```bash
 export DEVTRANS_TOKEN=deadbeefdeadbeefdeadbeefdeadbeef
+# Linux / macOS
 ./devtrans put path/to/file
+# Windows
+devtrans.exe put path\to\file
 ```
 
 ## System-Wide Setup
