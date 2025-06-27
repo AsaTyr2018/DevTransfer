@@ -4,14 +4,20 @@ import sqlite3
 from datetime import datetime, timedelta
 
 from fastapi import FastAPI, Depends, File, UploadFile, HTTPException, Request, Form
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import (
+    HTTPBasic,
+    HTTPBasicCredentials,
+    HTTPBearer,
+    HTTPAuthorizationCredentials,
+)
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import yaml
 
 app = FastAPI(title="DevTrans Server")
 
-security = HTTPBasic()
+basic_security = HTTPBasic()
+bearer_security = HTTPBearer()
 
 CONFIG_PATH = "server.yml"
 DB_PATH = "server.db"
@@ -67,7 +73,9 @@ load_tokens()
 
 
 # Authentication ------------------------------------------------------------
-async def get_current_admin(credentials: HTTPBasicCredentials = Depends(security)):
+async def get_current_admin(
+    credentials: HTTPBasicCredentials = Depends(basic_security),
+):
     for user in config.get("admin_users", []):
         if (
             credentials.username == user.get("username")
@@ -88,9 +96,11 @@ def verify_token(token: str) -> bool:
 
 # Routes -------------------------------------------------------------------
 @app.put("/upload")
-async def upload_file(file: UploadFile = File(...), token: str = Depends(security)):
-    # security dependency returns HTTPBasicCredentials, we expect bearer token
-    if not token.scheme.lower() == "bearer" or not verify_token(token.credentials):
+async def upload_file(
+    file: UploadFile = File(...),
+    token: HTTPAuthorizationCredentials = Depends(bearer_security),
+):
+    if not verify_token(token.credentials):
         raise HTTPException(status_code=401, detail="Invalid token")
 
     storage_dir = config["server"]["storage_dir"]
