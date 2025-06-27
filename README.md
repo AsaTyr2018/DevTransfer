@@ -11,7 +11,7 @@ Install the dependencies and start the development server:
 
 ```bash
 pip install -r requirements.txt
-uvicorn server.main:app --reload
+uvicorn server.main:app --host 0.0.0.0 --reload
 ```
 
 Visit `http://localhost:8000/admin` and authenticate with the credentials from
