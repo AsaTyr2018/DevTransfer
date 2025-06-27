@@ -1,0 +1,12 @@
+server:
+  base_url: http://localhost:8000
+  storage_dir: ./store
+  expiry_hours: 24
+
+admin_users:
+  - username: admin
+    password: secret
+
+tokens:
+  - name: example
+    token: deadbeefdeadbeefdeadbeefdeadbeef
