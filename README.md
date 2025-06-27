@@ -34,6 +34,17 @@ export DEVTRANS_TOKEN=deadbeefdeadbeefdeadbeefdeadbeef
 ./devtrans put path/to/file
 ```
 
+## System-Wide Setup
+
+The `installer/` directory contains helper scripts for installing the CLI and
+configuring environment variables globally.
+
+- **Linux:** run `sudo installer/linux_install.sh` and follow the prompts.
+- **Windows:** run `PowerShell installer\windows_install.ps1 -Token <token> [-BaseUrl <url>]`.
+
+After installation open a new terminal session and you can invoke `devtrans` from
+any directory.
+
 ## Documentation
 
 Detailed usage instructions are available in the [docs](./docs/) directory:
