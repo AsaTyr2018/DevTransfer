@@ -63,6 +63,17 @@ sudo ./setup.sh install    # initial install
 sudo ./setup.sh update     # pull latest code and restart
 ```
 
+Note that the installation does **not** copy the repository's `.git` directory
+to `/opt/DevTransfer`. To update the server, first fetch the latest changes in
+your local clone:
+
+```bash
+git pull
+sudo ./setup.sh update
+```
+Run these commands from your cloned repository; the script will rsync the
+updated files to `/opt/DevTransfer`.
+
 ## Documentation
 
 Detailed usage instructions are available in the [docs](./docs/) directory:
