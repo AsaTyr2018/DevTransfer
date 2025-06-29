@@ -8,6 +8,7 @@
       <th>Filename</th>
       <th>Uploaded By</th>
       <th>Expiry</th>
+      <th>Download</th>
       <th>Delete</th>
     </tr>
   </thead>
@@ -18,6 +19,9 @@
       <td>{{ f.filename }}</td>
       <td>{{ f.uploaded_by }}</td>
       <td>{{ f.expiry }}</td>
+      <td>
+        <a class="btn btn-sm btn-primary" href="/admin/files/download/{{ f.code }}">Download</a>
+      </td>
       <td>
         <form action="/admin/files/delete" method="post" class="d-inline">
           <input type="hidden" name="code" value="{{ f.code }}">
