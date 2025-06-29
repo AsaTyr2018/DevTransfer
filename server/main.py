@@ -15,8 +15,6 @@ from fastapi.templating import Jinja2Templates
 import yaml
 
 app = FastAPI(title="DevTrans Server")
-
-app.add_middleware(SessionMiddleware, secret_key="dev-secret")
 bearer_security = HTTPBearer()
 
 CONFIG_PATH = "server.yml"
@@ -64,6 +62,8 @@ async def block_default_admin(request: Request, call_next):
             status_code=403,
         )
     return await call_next(request)
+
+app.add_middleware(SessionMiddleware, secret_key="dev-secret")
 
 
 # Database helpers ----------------------------------------------------------
