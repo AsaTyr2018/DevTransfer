@@ -1,43 +1,42 @@
 # DevTrans Admin Guide
 
-This guide describes how to run the DevTrans server and manage upload tokens.
+This document explains how to run the DevTrans server and manage upload tokens.
 
 ## Running the Server
 
-Install dependencies from `requirements.txt` and start the FastAPI server:
+Install the dependencies and start the FastAPI application:
 
 ```bash
 pip install -r requirements.txt
 uvicorn server.main:app --host 0.0.0.0 --reload
 ```
 
-The server reads configuration from `server.yml` located in the repository root.
-Adjust `base_url`, `storage_dir` and `expiry_hours` as needed.
+The server reads its settings from `server.yml` in the repository root. Edit the `base_url`, `storage_dir` and `expiry_hours` values to suit your environment.
+
+For a systemd deployment use the provided `setup.sh` script:
+
+```bash
+sudo ./setup.sh install    # install under /opt/DevTransfer
+sudo ./setup.sh update     # pull updates and restart
+```
 
 ## Admin Authentication
 
-Admin credentials are defined under `admin_users` in `server.yml`. Unauthenticated visitors to `/admin` are redirected to a login form. After entering a valid username and password they receive a session cookie allowing access to the panel.
+Administrator accounts are listed under `admin_users` in `server.yml`. Unauthenticated visitors to `/admin` receive a login form. After a successful login a session cookie grants access to the panel.
 
 ## Web Admin Panel
 
-Open `http://localhost:8000/admin` in your browser and log in with an admin account.
+Open `http://localhost:8000/admin` and log in with an admin account. The panel allows you to:
 
-The panel lists existing upload tokens. You can:
+- **Create Token** – generate a new bearer token for CLI uploads.
+- **Delete Token** – revoke an existing token.
+- **Users** – add or remove additional administrators (the users in `server.yml` cannot be deleted here).
+- **Files** – review uploaded files, download them or remove entries manually.
 
-- **Create Token** – enter a name and submit to generate a new token.
-- **Delete Token** – remove a token which immediately invalidates it for future uploads.
+## Preloading Tokens
 
-Additional sections under **Users** and **Files** are available after logging in:
-
-- **Users** – add or remove extra administrator accounts. The first admin configured in `server.yml` remains hard coded.
- - **Files** – review uploaded files, see which token name uploaded them, download any file and delete entries manually if required.
-
-## Preloaded Tokens
-
-You can preload tokens by listing them under the `tokens` section of `server.yml`.
-These tokens will be inserted into the database when the server starts.
+List tokens under the `tokens` section of `server.yml` to have them inserted into the database when the server starts.
 
 ## Database Location
 
-The server stores metadata in `server.db` (SQLite) in the project root. Remove this file if you need to reset all tokens and uploaded file entries.
-
+Metadata and tokens are stored in `server.db` (SQLite) in the project root. Delete this file to reset the database.

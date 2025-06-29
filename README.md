@@ -1,30 +1,29 @@
 # DevTransfer
 
-A simple API transfer tool for small or bulk data.
+DevTransfer provides a small FastAPI server and a cross‑platform CLI to quickly share files with one‑time download links. Uploads are authenticated via bearer tokens that administrators create in a built‑in web panel. A lightweight web dashboard allows token holders to review their own uploads.
 
-This repository contains the foundation for **DevTrans**, including a FastAPI
-server, a web admin panel and a minimal CLI written in Go. A small web
-dashboard is available at the root URL. Users can log in with their API token to
-upload files and review their own uploads.
+## Features
 
-## Running the Server
+* **CLI Uploads and Downloads** – `devtrans put <file>` uploads a file (or directory via `*`) and prints a single‑use link with an expiry timestamp. `devtrans get <code>` retrieves the file.
+* **FastAPI Server** – exposes `/upload` and `/download/{code}` endpoints and stores metadata in SQLite.
+* **Web Admin Panel** – `/admin` lets admins log in, create/delete tokens, manage additional admin accounts and browse uploaded files.
+* **User Dashboard** – token holders can log in at the root URL to upload through the browser and view their own files.
+* **Configurable Storage** – `server.yml` controls base URL, storage directory and default expiry time.
 
-Install the dependencies and start the development server:
+## Quick Start
+
+### 1. Run the Server
+
+Install dependencies and start the development server:
 
 ```bash
 pip install -r requirements.txt
 uvicorn server.main:app --host 0.0.0.0 --reload
 ```
 
-Visit `http://localhost:8000/admin` and log in with the credentials from
-`server.yml` when prompted. The panel lets you manage upload tokens as well as
-additional admin accounts and existing uploads.
+Visit `http://localhost:8000/admin` and log in with the credentials from `server.yml` to create upload tokens.
 
-## Building the CLI
-
-The CLI lives under `cli/` and can be built with Go. On Unix systems the binary
-will be called `devtrans`, while on Windows the executable needs the `.exe`
-extension:
+### 2. Build the CLI
 
 ```bash
 cd cli
@@ -34,47 +33,43 @@ go build -o devtrans
 go build -o devtrans.exe
 ```
 
-Set `DEVTRANS_TOKEN` and optionally `DEVTRANS_BASE_URL` before running the
-commands or create `/opt/DevTransClient/config` (Windows: `C:\DevTransClient\config`)
-with the keys `token` and `base_url`. Use `./devtrans` on Linux/macOS or
-`devtrans.exe` on Windows:
+Create `/opt/DevTransClient/config` (Windows: `C:\DevTransClient\config`) containing your token and optional base URL:
 
-```bash
-# Linux / macOS
-DEVTRANS_TOKEN=deadbeefdeadbeefdeadbeefdeadbeef ./devtrans put path/to/file
-# Windows
-$env:DEVTRANS_TOKEN="deadbeefdeadbeefdeadbeefdeadbeef"; devtrans.exe put path\to\file
+```
+token=YOUR_TOKEN
+base_url=http://localhost:8000
 ```
 
-## System-Wide Setup
+Environment variables `DEVTRANS_TOKEN` and `DEVTRANS_BASE_URL` override these values.
 
-The `installer/` directory contains helper scripts for installing the CLI
-system-wide. They also create the configuration file described above.
+### 3. Upload a File
 
-- **Linux:** run `sudo installer/linux_install.sh` and follow the prompts.
-- **Windows:** run `PowerShell installer\windows_install.ps1 -Token <token> [-BaseUrl <url>]`.
+```bash
+DEVTRANS_TOKEN=YOUR_TOKEN ./devtrans put path/to/file
+```
 
-After installation open a new terminal session and you can invoke `devtrans` from
-any directory.
+The command prints the download code, full URL and expiry timestamp. Use `devtrans put *` to stream the current directory as a ZIP archive.
 
-### Server Install/Update
+### 4. Download
 
-Use `setup.sh` to deploy the Python server under `/opt/DevTransfer` and run it as a
-systemd service. Execute the script as root:
+```bash
+./devtrans get CODE
+```
+
+The file is saved with its original name and removed from the server after the first successful download.
+
+## Deployment
+
+The `installer/` directory contains scripts to install the CLI system-wide. Use `setup.sh` to deploy the Python server under `/opt/DevTransfer` and manage it as a systemd service:
 
 ```bash
 sudo ./setup.sh install    # initial install
-sudo ./setup.sh update     # pull latest code and restart
+sudo ./setup.sh update     # fetch updates and restart
 ```
-
-The installation copies the entire repository, including its `.git` directory,
-to `/opt/DevTransfer`. When you later run `sudo ./setup.sh update`, the script
-executes `git pull` inside that directory to fetch updates and restart the
-service.
 
 ## Documentation
 
-Detailed usage instructions are available in the [docs](./docs/) directory:
+More detailed instructions are available in the [docs](./docs/) directory:
 
-- [User Guide](docs/UserGuide.md) explains how to build the CLI and transfer files.
-- [Admin Guide](docs/AdminGuide.md) covers running the server and managing tokens.
+- [User Guide](docs/UserGuide.md)
+- [Admin Guide](docs/AdminGuide.md)
