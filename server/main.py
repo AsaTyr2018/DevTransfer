@@ -344,6 +344,29 @@ async def delete_file_admin(request: Request, code: str = Form(...)):
     return RedirectResponse("/admin/files", status_code=303)
 
 
+@app.get("/admin/files/download/{code}")
+async def admin_download_file(request: Request, code: str):
+    """Allow admins to download a file without consuming the share."""
+    if not request.session.get("user"):
+        return RedirectResponse("/login")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT filename, path, expiry FROM files WHERE code=?", (code,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="File not found")
+    expiry = datetime.utcfromtimestamp(row["expiry"])
+    if datetime.utcnow() > expiry:
+        conn.close()
+        raise HTTPException(status_code=404, detail="File expired")
+    filename = row["filename"]
+    path = row["path"]
+    conn.close()
+    headers = {"X-Filename": filename}
+    return FileResponse(path, filename=filename, media_type="application/octet-stream", headers=headers)
+
+
 # Public frontpage and user dashboard ------------------------------------
 
 @app.get("/", response_class=HTMLResponse)

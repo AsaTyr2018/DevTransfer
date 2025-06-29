@@ -30,7 +30,7 @@ The panel lists existing upload tokens. You can:
 Additional sections under **Users** and **Files** are available after logging in:
 
 - **Users** – add or remove extra administrator accounts. The first admin configured in `server.yml` remains hard coded.
- - **Files** – review uploaded files, see which token name uploaded them and delete entries manually if required.
+ - **Files** – review uploaded files, see which token name uploaded them, download any file and delete entries manually if required.
 
 ## Preloaded Tokens
 
