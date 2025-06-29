@@ -30,7 +30,40 @@ def load_config():
 
 config = load_config()
 
+DEFAULT_ADMIN = {"username": "admin", "password": "secret"}
+DEFAULT_TOKEN = {"name": "example", "token": "deadbeefdeadbeefdeadbeefdeadbeef"}
+
+
+def has_default_data(cfg) -> bool:
+    default_admin = any(
+        u.get("username") == DEFAULT_ADMIN["username"]
+        and u.get("password") == DEFAULT_ADMIN["password"]
+        for u in cfg.get("admin_users", [])
+    )
+    default_token = any(
+        t.get("name") == DEFAULT_TOKEN["name"]
+        and t.get("token") == DEFAULT_TOKEN["token"]
+        for t in cfg.get("tokens", [])
+    )
+    return default_admin or default_token
+
+
+ADMIN_LOCKED = has_default_data(config)
+
 templates = Jinja2Templates(directory="server/templates")
+
+
+@app.middleware("http")
+async def block_default_admin(request: Request, call_next):
+    if ADMIN_LOCKED and (
+        request.url.path.startswith("/admin") or request.url.path.startswith("/login")
+    ):
+        return templates.TemplateResponse(
+            "warning.html",
+            {"request": request},
+            status_code=403,
+        )
+    return await call_next(request)
 
 
 # Database helpers ----------------------------------------------------------

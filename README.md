@@ -22,6 +22,8 @@ uvicorn server.main:app --host 0.0.0.0 --reload
 ```
 
 Visit `http://localhost:8000/admin` and log in with the credentials from `server.yml` to create upload tokens.
+If the default `admin`/`secret` account or the example token remain in `server.yml`,
+the admin panel is locked and shows a warning until they are changed.
 
 ### 2. Build the CLI
 
