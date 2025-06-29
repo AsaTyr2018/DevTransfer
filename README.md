@@ -1,17 +1,21 @@
 # DevTransfer
 
-DevTransfer is a small file transfer tool with a FastAPI backend and a simple command line interface. Files are uploaded with bearer tokens and downloaded through single-use links. Administrators manage tokens in a web panel.
+DevTransfer is a lightweight, self-hosted service for moving files between machines. A cross-platform CLI uploads data to a FastAPI backend which stores metadata in SQLite and serves one‑time download links. A browser-based admin panel lets authorised users create and revoke upload tokens.
 
 ## Features
 
-- CLI uploads and downloads
-- FastAPI server storing metadata in SQLite
-- Web admin panel to create and revoke tokens
+- Cross-platform CLI for uploads and downloads
+- FastAPI server storing files on disk with metadata in SQLite
+- One-time download links with configurable expiry
+- Web admin panel to create or revoke tokens and inspect uploads
 - Installer scripts for Linux and Windows
+- Admin interface disabled when the default credentials from `server.yml` are still in use
 
 ## Server Setup
 
 Choose one of the following methods to start the FastAPI server.
+
+**Important:** The admin panel is locked if `server.yml` still contains the bundled example credentials. Edit the file before deployment.
 
 1. **Manual Install**
 
