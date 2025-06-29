@@ -1,4 +1,4 @@
-# Installs DevTrans CLI on Windows and configures system-wide environment variables
+# Installs DevTrans CLI on Windows and writes configuration under C:\DevTransClient
 param(
     [Parameter(Mandatory=$true)]
     [string]$Token,
@@ -23,7 +23,8 @@ if ($path -notlike "*$installDir*") {
     [Environment]::SetEnvironmentVariable('Path', "$path;$installDir", 'Machine')
 }
 
-[Environment]::SetEnvironmentVariable('DEVTRANS_TOKEN', $Token, 'Machine')
-[Environment]::SetEnvironmentVariable('DEVTRANS_BASE_URL', $BaseUrl, 'Machine')
+$cfgDir = 'C:\DevTransClient'
+if (-not (Test-Path $cfgDir)) { New-Item -ItemType Directory -Path $cfgDir | Out-Null }
+"token=$Token`nbase_url=$BaseUrl" | Out-File -Encoding ASCII -FilePath (Join-Path $cfgDir 'config') -Force
 
 Write-Host 'DevTrans installed. Restart your command prompt to use devtrans.'

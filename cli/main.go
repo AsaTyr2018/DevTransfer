@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -9,9 +10,51 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
+
+type Config struct {
+	BaseURL string
+	Token   string
+}
+
+func configPath() string {
+	if runtime.GOOS == "windows" {
+		return `C:\\DevTransClient\\config`
+	}
+	return "/opt/DevTransClient/config"
+}
+
+func loadConfig() Config {
+	f, err := os.Open(configPath())
+	if err != nil {
+		return Config{}
+	}
+	defer f.Close()
+	var cfg Config
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		key := strings.ToLower(strings.TrimSpace(parts[0]))
+		val := strings.TrimSpace(parts[1])
+		switch key {
+		case "base_url":
+			cfg.BaseURL = val
+		case "token":
+			cfg.Token = val
+		}
+	}
+	return cfg
+}
 
 type UploadResp struct {
 	Code   string `json:"code"`
@@ -37,11 +80,22 @@ func main() {
 	if len(os.Args) < 3 {
 		usage()
 	}
+	cfg := loadConfig()
 	baseURL := os.Getenv("DEVTRANS_BASE_URL")
+	if baseURL == "" {
+		baseURL = cfg.BaseURL
+	}
 	if baseURL == "" {
 		baseURL = "http://localhost:8000"
 	}
 	token := os.Getenv("DEVTRANS_TOKEN")
+	if token == "" {
+		token = cfg.Token
+	}
+	if token == "" {
+		fmt.Println("missing API token: set DEVTRANS_TOKEN or edit", configPath())
+		os.Exit(1)
+	}
 
 	switch os.Args[1] {
 	case "put":

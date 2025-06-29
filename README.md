@@ -35,20 +35,21 @@ go build -o devtrans.exe
 ```
 
 Set `DEVTRANS_TOKEN` and optionally `DEVTRANS_BASE_URL` before running the
-commands. Use `./devtrans` on Linux/macOS or `devtrans.exe` on Windows:
+commands or create `/opt/DevTransClient/config` (Windows: `C:\DevTransClient\config`)
+with the keys `token` and `base_url`. Use `./devtrans` on Linux/macOS or
+`devtrans.exe` on Windows:
 
 ```bash
-export DEVTRANS_TOKEN=deadbeefdeadbeefdeadbeefdeadbeef
 # Linux / macOS
-./devtrans put path/to/file
+DEVTRANS_TOKEN=deadbeefdeadbeefdeadbeefdeadbeef ./devtrans put path/to/file
 # Windows
-devtrans.exe put path\to\file
+$env:DEVTRANS_TOKEN="deadbeefdeadbeefdeadbeefdeadbeef"; devtrans.exe put path\to\file
 ```
 
 ## System-Wide Setup
 
-The `installer/` directory contains helper scripts for installing the CLI and
-configuring environment variables globally.
+The `installer/` directory contains helper scripts for installing the CLI
+system-wide. They also create the configuration file described above.
 
 - **Linux:** run `sudo installer/linux_install.sh` and follow the prompts.
 - **Windows:** run `PowerShell installer\windows_install.ps1 -Token <token> [-BaseUrl <url>]`.
