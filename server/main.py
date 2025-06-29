@@ -303,14 +303,21 @@ async def files_admin(request: Request):
         return RedirectResponse("/login")
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT code, filename, expiry, uploaded_by, path FROM files")
+    cur.execute(
+        """
+        SELECT files.code, files.filename, files.expiry, files.uploaded_by, files.path,
+               tokens.name AS uploader_name
+        FROM files
+        LEFT JOIN tokens ON files.uploaded_by = tokens.token
+        """
+    )
     rows = cur.fetchall()
     files = [
         {
             "code": r["code"],
             "filename": r["filename"],
             "expiry": datetime.utcfromtimestamp(r["expiry"]).isoformat(),
-            "uploaded_by": r["uploaded_by"],
+            "uploaded_by": r["uploader_name"] or r["uploaded_by"],
         }
         for r in rows
     ]
