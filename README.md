@@ -14,8 +14,8 @@ pip install -r requirements.txt
 uvicorn server.main:app --host 0.0.0.0 --reload
 ```
 
-Visit `http://localhost:8000/admin` and authenticate with the credentials from
-`server.yml`.
+Visit `http://localhost:8000/admin` and log in with the credentials from
+`server.yml` when prompted.
 
 ## Building the CLI
 

@@ -5,19 +5,18 @@ from datetime import datetime, timedelta
 
 from fastapi import FastAPI, Depends, File, UploadFile, HTTPException, Request, Form
 from fastapi.security import (
-    HTTPBasic,
-    HTTPBasicCredentials,
     HTTPBearer,
     HTTPAuthorizationCredentials,
 )
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from starlette.background import BackgroundTask
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi.templating import Jinja2Templates
 import yaml
 
 app = FastAPI(title="DevTrans Server")
 
-basic_security = HTTPBasic()
+app.add_middleware(SessionMiddleware, secret_key="dev-secret")
 bearer_security = HTTPBearer()
 
 CONFIG_PATH = "server.yml"
@@ -74,16 +73,18 @@ load_tokens()
 
 
 # Authentication ------------------------------------------------------------
-async def get_current_admin(
-    credentials: HTTPBasicCredentials = Depends(basic_security),
-):
+def authenticate_user(username: str, password: str) -> bool:
     for user in config.get("admin_users", []):
-        if (
-            credentials.username == user.get("username")
-            and credentials.password == user.get("password")
-        ):
-            return credentials.username
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+        if username == user.get("username") and password == user.get("password"):
+            return True
+    return False
+
+
+def require_admin(request: Request):
+    user = request.session.get("user")
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user
 
 
 def verify_token(token: str) -> bool:
@@ -96,6 +97,30 @@ def verify_token(token: str) -> bool:
 
 
 # Routes -------------------------------------------------------------------
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_form(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.post("/login")
+async def login(request: Request, username: str = Form(...), password: str = Form(...)):
+    if authenticate_user(username, password):
+        request.session["user"] = username
+        return RedirectResponse("/admin", status_code=303)
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request, "error": "Invalid credentials"},
+        status_code=400,
+    )
+
+
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.pop("user", None)
+    return RedirectResponse("/login")
+
+
 @app.put("/upload")
 async def upload_file(
     file: UploadFile = File(...),
@@ -177,7 +202,9 @@ async def download_file(code: str):
 
 
 @app.get("/admin", response_class=HTMLResponse)
-async def admin_panel(request: Request, user: str = Depends(get_current_admin)):
+async def admin_panel(request: Request):
+    if not request.session.get("user"):
+        return RedirectResponse("/login")
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT name, token FROM tokens")
@@ -189,7 +216,9 @@ async def admin_panel(request: Request, user: str = Depends(get_current_admin)):
 
 
 @app.post("/admin/create")
-async def create_token(name: str = Form(...), user: str = Depends(get_current_admin)):
+async def create_token(request: Request, name: str = Form(...)):
+    if not request.session.get("user"):
+        return RedirectResponse("/login")
     token = secrets.token_hex(16)
     conn = get_db()
     cur = conn.cursor()
@@ -203,7 +232,9 @@ async def create_token(name: str = Form(...), user: str = Depends(get_current_ad
 
 
 @app.post("/admin/delete")
-async def delete_token(token: str = Form(...), user: str = Depends(get_current_admin)):
+async def delete_token(request: Request, token: str = Form(...)):
+    if not request.session.get("user"):
+        return RedirectResponse("/login")
     conn = get_db()
     cur = conn.cursor()
     cur.execute("DELETE FROM tokens WHERE token=?", (token,))
