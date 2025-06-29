@@ -3,3 +3,4 @@ uvicorn
 python-multipart
 pyyaml
 jinja2
+itsdangerous
