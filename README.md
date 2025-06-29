@@ -63,6 +63,11 @@ sudo ./setup.sh install    # initial install
 sudo ./setup.sh update     # pull latest code and restart
 ```
 
+The installation copies the entire repository, including its `.git` directory,
+to `/opt/DevTransfer`. When you later run `sudo ./setup.sh update`, the script
+executes `git pull` inside that directory to fetch updates and restart the
+service.
+
 ## Documentation
 
 Detailed usage instructions are available in the [docs](./docs/) directory:
