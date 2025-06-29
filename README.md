@@ -3,7 +3,9 @@
 A simple API transfer tool for small or bulk data.
 
 This repository contains the foundation for **DevTrans**, including a FastAPI
-server, a web admin panel and a minimal CLI written in Go.
+server, a web admin panel and a minimal CLI written in Go. A small web
+dashboard is available at the root URL. Users can log in with their API token to
+upload files and review their own uploads.
 
 ## Running the Server
 

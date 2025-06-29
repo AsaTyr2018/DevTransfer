@@ -336,3 +336,79 @@ async def delete_file_admin(request: Request, code: str = Form(...)):
     conn.close()
     return RedirectResponse("/admin/files", status_code=303)
 
+
+# Public frontpage and user dashboard ------------------------------------
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    if request.session.get("token"):
+        return RedirectResponse("/dashboard")
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.post("/token/login")
+async def token_login(request: Request, token: str = Form(...)):
+    if not verify_token(token):
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "error": "Invalid token"},
+            status_code=400,
+        )
+    request.session["token"] = token
+    return RedirectResponse("/dashboard", status_code=303)
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def user_dashboard(request: Request):
+    token = request.session.get("token")
+    if not token:
+        return RedirectResponse("/")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT code, filename, expiry FROM files WHERE uploaded_by=?", (token,)
+    )
+    rows = cur.fetchall()
+    conn.close()
+    files = [
+        {
+            "filename": r["filename"],
+            "url": f"{config['server']['base_url']}/download/{r['code']}",
+            "expiry": datetime.utcfromtimestamp(r["expiry"]).isoformat(),
+        }
+        for r in rows
+    ]
+    return templates.TemplateResponse(
+        "dashboard.html", {"request": request, "files": files}
+    )
+
+
+@app.post("/dashboard/upload")
+async def dashboard_upload(
+    request: Request, file: UploadFile = File(...)
+):
+    token = request.session.get("token")
+    if not token or not verify_token(token):
+        return RedirectResponse("/")
+    storage_dir = config["server"]["storage_dir"]
+    os.makedirs(storage_dir, exist_ok=True)
+    code = secrets.token_urlsafe(6)
+    dest_path = os.path.join(storage_dir, code)
+    with open(dest_path, "wb") as out:
+        out.write(await file.read())
+    expiry = datetime.utcnow() + timedelta(hours=config["server"].get("expiry_hours", 24))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO files(code, filename, path, expiry, oneshot, uploaded_by) VALUES(?,?,?,?,1,?)",
+        (code, file.filename, dest_path, int(expiry.timestamp()), token),
+    )
+    conn.commit()
+    conn.close()
+    return RedirectResponse("/dashboard", status_code=303)
+
+
+@app.get("/token/logout")
+async def token_logout(request: Request):
+    request.session.pop("token", None)
+    return RedirectResponse("/")
