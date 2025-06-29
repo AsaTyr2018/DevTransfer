@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">DevTrans</h1>
+{% if not request.session.get('token') %}
+<form action="/token/login" method="post" class="w-25">
+  <div class="mb-3">
+    <input type="text" name="token" class="form-control" placeholder="API Token" required>
+  </div>
+  <button class="btn btn-primary" type="submit">Login</button>
+</form>
+{% else %}
+<p>You are logged in.</p>
+<p><a class="btn btn-primary" href="/dashboard">Go to Dashboard</a></p>
+{% endif %}
+{% endblock %}

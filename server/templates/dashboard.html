@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">Your Files</h1>
+<form action="/dashboard/upload" method="post" enctype="multipart/form-data" class="mb-3 d-flex">
+  <input type="file" name="file" class="form-control me-2" required>
+  <button class="btn btn-primary" type="submit">Upload</button>
+</form>
+<table class="table table-dark table-striped">
+  <thead>
+    <tr>
+      <th>Filename</th>
+      <th>Share Link</th>
+      <th>Expiry</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for f in files %}
+    <tr>
+      <td>{{ f.filename }}</td>
+      <td><a href="{{ f.url }}">{{ f.url }}</a></td>
+      <td>{{ f.expiry }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p><a class="btn btn-secondary" href="/token/logout">Logout</a></p>
+{% endblock %}
