@@ -53,6 +53,16 @@ configuring environment variables globally.
 After installation open a new terminal session and you can invoke `devtrans` from
 any directory.
 
+### Server Install/Update
+
+Use `setup.sh` to deploy the Python server under `/opt/DevTransfer` and run it as a
+systemd service. Execute the script as root:
+
+```bash
+sudo ./setup.sh install    # initial install
+sudo ./setup.sh update     # pull latest code and restart
+```
+
 ## Documentation
 
 Detailed usage instructions are available in the [docs](./docs/) directory:
