@@ -35,6 +35,10 @@ install_devtransfer() {
     fi
     "$VENVDIR/bin/pip" install --upgrade pip
     "$VENVDIR/bin/pip" install -r "$INSTALL_DIR/requirements.txt"
+    if command -v go >/dev/null 2>&1; then
+        echo "Building CLI binary"
+        go build -o "$INSTALL_DIR/cli/devtrans" "$INSTALL_DIR/cli"
+    fi
 
     cat > "$SERVICE_FILE" <<EOUNIT
 [Unit]
@@ -72,6 +76,10 @@ update_devtransfer() {
     fi
 
     "$VENVDIR/bin/pip" install -r "$INSTALL_DIR/requirements.txt"
+    if command -v go >/dev/null 2>&1; then
+        echo "Building CLI binary"
+        go build -o "$INSTALL_DIR/cli/devtrans" "$INSTALL_DIR/cli"
+    fi
     systemctl start devtransfer.service
     echo "Update completed"
 }
