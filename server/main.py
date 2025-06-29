@@ -8,7 +8,7 @@ from fastapi.security import (
     HTTPBearer,
     HTTPAuthorizationCredentials,
 )
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, Response
 from starlette.background import BackgroundTask
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.templating import Jinja2Templates
@@ -27,6 +27,8 @@ def load_config():
 
 
 config = load_config()
+CLI_VERSION = config.get("cli", {}).get("version", "0.0.0")
+CLI_BINARY = config.get("cli", {}).get("binary_path", "./devtrans")
 
 DEFAULT_ADMIN = {"username": "admin", "password": "secret"}
 DEFAULT_TOKEN = {"name": "example", "token": "deadbeefdeadbeefdeadbeefdeadbeef"}
@@ -508,3 +510,19 @@ async def dashboard_upload(
 async def token_logout(request: Request):
     request.session.pop("token", None)
     return RedirectResponse("/")
+
+
+@app.get("/cli/version")
+async def cli_version():
+    return Response(CLI_VERSION, media_type="text/plain")
+
+
+@app.get("/cli/devtrans")
+async def cli_binary():
+    if not os.path.exists(CLI_BINARY):
+        raise HTTPException(status_code=404, detail="CLI binary not found")
+    return FileResponse(
+        CLI_BINARY,
+        filename="devtrans",
+        media_type="application/octet-stream",
+    )

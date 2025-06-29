@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -14,6 +15,8 @@ import (
 	"strings"
 	"time"
 )
+
+const Version = "0.1.0"
 
 type Config struct {
 	BaseURL string
@@ -71,12 +74,74 @@ func formatExpiry(ts string) string {
 	return t.Format("2006-01-02 15:04 MST")
 }
 
+func checkRemoteVersion(baseURL string) (string, error) {
+	resp, err := http.Get(baseURL + "/cli/version")
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.New(resp.Status)
+	}
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(data)), nil
+}
+
+func performUpdate(baseURL string) error {
+	resp, err := http.Get(baseURL + "/cli/devtrans")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(resp.Status)
+	}
+	exe, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	tmp := exe + ".new"
+	out, err := os.Create(tmp)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(out, resp.Body); err != nil {
+		out.Close()
+		return err
+	}
+	out.Close()
+	if err := os.Rename(tmp, exe); err != nil {
+		return err
+	}
+	return nil
+}
+
 func usage() {
 	fmt.Println("Usage: devtrans <put|get> <path|code>")
+	fmt.Println("       devtrans --update")
 	os.Exit(1)
 }
 
 func main() {
+	if len(os.Args) == 2 && os.Args[1] == "--update" {
+		cfg := loadConfig()
+		baseURL := os.Getenv("DEVTRANS_BASE_URL")
+		if baseURL == "" {
+			baseURL = cfg.BaseURL
+		}
+		if baseURL == "" {
+			baseURL = "http://localhost:8000"
+		}
+		if err := performUpdate(baseURL); err != nil {
+			fmt.Println("update failed:", err)
+			os.Exit(1)
+		}
+		fmt.Println("DevTrans updated successfully")
+		return
+	}
 	if len(os.Args) < 3 {
 		usage()
 	}
@@ -149,6 +214,9 @@ func main() {
 		fmt.Printf(" URL:    %s\n", r.URL)
 		fmt.Printf(" Expires: %s\n", exp)
 		fmt.Println("=======================")
+		if remote, err := checkRemoteVersion(baseURL); err == nil && remote != "" && remote != Version {
+			fmt.Printf("New DevTrans version %s available. Run 'devtrans --update' to upgrade.\n", remote)
+		}
 
 	case "get":
 		code := os.Args[2]

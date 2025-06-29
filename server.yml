@@ -10,3 +10,7 @@ admin_users:
 tokens:
   - name: example
     token: deadbeefdeadbeefdeadbeefdeadbeef
+
+cli:
+  version: "0.1.0"
+  binary_path: ./cli/devtrans
