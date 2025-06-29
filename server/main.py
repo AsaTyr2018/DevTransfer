@@ -39,11 +39,19 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS files (code TEXT PRIMARY KEY, filename TEXT, path TEXT, expiry INTEGER, oneshot INTEGER)"
+        "CREATE TABLE IF NOT EXISTS files (code TEXT PRIMARY KEY, filename TEXT, path TEXT, expiry INTEGER, oneshot INTEGER, uploaded_by TEXT)"
     )
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tokens (name TEXT, token TEXT UNIQUE)"
     )
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS admins (username TEXT UNIQUE, password TEXT)"
+    )
+    # add uploaded_by column for older databases
+    cur.execute("PRAGMA table_info(files)")
+    cols = [r[1] for r in cur.fetchall()]
+    if "uploaded_by" not in cols:
+        cur.execute("ALTER TABLE files ADD COLUMN uploaded_by TEXT")
     conn.commit()
     conn.close()
 
@@ -77,7 +85,15 @@ def authenticate_user(username: str, password: str) -> bool:
     for user in config.get("admin_users", []):
         if username == user.get("username") and password == user.get("password"):
             return True
-    return False
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT 1 FROM admins WHERE username=? AND password=?",
+        (username, password),
+    )
+    row = cur.fetchone()
+    conn.close()
+    return row is not None
 
 
 def require_admin(request: Request):
@@ -141,8 +157,8 @@ async def upload_file(
     conn = get_db()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO files(code, filename, path, expiry, oneshot) VALUES(?,?,?,?,1)",
-        (code, file.filename, dest_path, int(expiry.timestamp())),
+        "INSERT INTO files(code, filename, path, expiry, oneshot, uploaded_by) VALUES(?,?,?,?,1,?)",
+        (code, file.filename, dest_path, int(expiry.timestamp()), token.credentials),
     )
     conn.commit()
     conn.close()
@@ -241,4 +257,82 @@ async def delete_token(request: Request, token: str = Form(...)):
     conn.commit()
     conn.close()
     return RedirectResponse("/admin", status_code=303)
+
+
+@app.get("/admin/users", response_class=HTMLResponse)
+async def user_admin(request: Request):
+    if not request.session.get("user"):
+        return RedirectResponse("/login")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT username FROM admins")
+    users = cur.fetchall()
+    conn.close()
+    return templates.TemplateResponse(
+        "users.html", {"request": request, "users": users, "static_users": config.get("admin_users", [])}
+    )
+
+
+@app.post("/admin/users/create")
+async def create_user(request: Request, username: str = Form(...), password: str = Form(...)):
+    if not request.session.get("user"):
+        return RedirectResponse("/login")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO admins(username, password) VALUES(?, ?)", (username, password))
+    conn.commit()
+    conn.close()
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@app.post("/admin/users/delete")
+async def delete_user(request: Request, username: str = Form(...)):
+    if not request.session.get("user"):
+        return RedirectResponse("/login")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM admins WHERE username=?", (username,))
+    conn.commit()
+    conn.close()
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@app.get("/admin/files", response_class=HTMLResponse)
+async def files_admin(request: Request):
+    if not request.session.get("user"):
+        return RedirectResponse("/login")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT code, filename, expiry, uploaded_by, path FROM files")
+    rows = cur.fetchall()
+    files = [
+        {
+            "code": r["code"],
+            "filename": r["filename"],
+            "expiry": datetime.utcfromtimestamp(r["expiry"]).isoformat(),
+            "uploaded_by": r["uploaded_by"],
+        }
+        for r in rows
+    ]
+    conn.close()
+    return templates.TemplateResponse(
+        "files.html", {"request": request, "files": files}
+    )
+
+
+@app.post("/admin/files/delete")
+async def delete_file_admin(request: Request, code: str = Form(...)):
+    if not request.session.get("user"):
+        return RedirectResponse("/login")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT path FROM files WHERE code=?", (code,))
+    row = cur.fetchone()
+    if row:
+        if os.path.exists(row["path"]):
+            os.remove(row["path"])
+        cur.execute("DELETE FROM files WHERE code=?", (code,))
+        conn.commit()
+    conn.close()
+    return RedirectResponse("/admin/files", status_code=303)
 

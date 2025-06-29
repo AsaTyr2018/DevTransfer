@@ -8,8 +8,16 @@
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark mb-4">
-  <div class="container-fluid">
+  <div class="container-fluid d-flex justify-content-between">
     <a class="navbar-brand" href="/admin">DevTrans Admin</a>
+    {% if request.session.get('user') %}
+    <div>
+      <a class="btn btn-link text-light" href="/admin">Tokens</a>
+      <a class="btn btn-link text-light" href="/admin/users">Users</a>
+      <a class="btn btn-link text-light" href="/admin/files">Files</a>
+      <a class="btn btn-link text-light" href="/logout">Logout</a>
+    </div>
+    {% endif %}
   </div>
 </nav>
 <div class="container">

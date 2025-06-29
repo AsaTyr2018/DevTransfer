@@ -27,6 +27,11 @@ The panel lists existing upload tokens. You can:
 - **Create Token** – enter a name and submit to generate a new token.
 - **Delete Token** – remove a token which immediately invalidates it for future uploads.
 
+Additional sections under **Users** and **Files** are available after logging in:
+
+- **Users** – add or remove extra administrator accounts. The first admin configured in `server.yml` remains hard coded.
+- **Files** – review uploaded files, see which token uploaded them and delete entries manually if required.
+
 ## Preloaded Tokens
 
 You can preload tokens by listing them under the `tokens` section of `server.yml`.
