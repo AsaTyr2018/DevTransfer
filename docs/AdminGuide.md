@@ -1,42 +1,45 @@
 # DevTrans Admin Guide
 
-This document explains how to run the DevTrans server and manage upload tokens.
+This guide explains how to install the Linux-based server and manage it through the web admin interface.
 
-## Running the Server
+## Installing the Server
 
-Install the dependencies and start the FastAPI application:
+DevTrans currently runs on Linux only and requires Python 3.12. Clone the repository and start the service in a virtual environment for testing:
 
 ```bash
+git clone <repository-url>
+cd DevTransfer
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-uvicorn server.main:app --host 0.0.0.0 --reload
+uvicorn server.main:app --host 0.0.0.0
 ```
 
-The server reads its settings from `server.yml` in the repository root. Edit the `base_url`, `storage_dir` and `expiry_hours` values to suit your environment.
+Server settings reside in `server.yml` in the project root. Adjust `base_url`, `storage_dir` and `expiry_hours` before deployment.
 
-For a systemd deployment use the provided `setup.sh` script:
+### Systemd Service
+
+For a persistent installation use the `setup.sh` script. It copies the project to `/opt/DevTransfer`, creates a virtual environment and registers a systemd unit:
 
 ```bash
-sudo ./setup.sh install    # install under /opt/DevTransfer
+sudo ./setup.sh install    # install and start devtransfer.service
 sudo ./setup.sh update     # pull updates and restart
 ```
 
-## Admin Authentication
+## Accessing the Admin Interface
 
-Administrator accounts are listed under `admin_users` in `server.yml`. Unauthenticated visitors to `/admin` receive a login form. After a successful login a session cookie grants access to the panel.
+Navigate to `<base_url>/admin` and log in with a username from the `admin_users` section of `server.yml`. A session cookie grants access after successful authentication.
 
-## Web Admin Panel
+### Dashboard Features
 
-Open `http://localhost:8000/admin` and log in with an admin account. The panel allows you to:
+From the admin dashboard you can:
 
-- **Create Token** – generate a new bearer token for CLI uploads.
-- **Delete Token** – revoke an existing token.
-- **Users** – add or remove additional administrators (the users in `server.yml` cannot be deleted here).
-- **Files** – review uploaded files, download them or remove entries manually.
+- **Create or revoke tokens** for CLI uploads.
+- **View uploaded files**, download or delete them.
+- **Manage additional administrators** created via the interface.
 
-## Preloading Tokens
+Tokens listed under `tokens` in `server.yml` are imported automatically at startup.
 
-List tokens under the `tokens` section of `server.yml` to have them inserted into the database when the server starts.
+## Database and Storage
 
-## Database Location
-
-Metadata and tokens are stored in `server.db` (SQLite) in the project root. Delete this file to reset the database.
+Metadata and tokens are stored in `server.db` (SQLite) in the project directory. Uploaded files are kept in the directory specified by `storage_dir`. Removing `server.db` resets the database.
