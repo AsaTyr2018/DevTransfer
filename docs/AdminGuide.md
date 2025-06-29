@@ -15,7 +15,7 @@ pip install -r requirements.txt
 uvicorn server.main:app --host 0.0.0.0
 ```
 
-Server settings reside in `server.yml` in the project root. Adjust `base_url`, `storage_dir` and `expiry_hours` before deployment.
+Server settings reside in `server.yml` in the project root. Adjust `base_url`, `storage_dir` and `expiry_hours` before deployment. The file also contains a `cli` section specifying the `version` and `binary_path` used for client updates.
 
 ### Systemd Service
 
@@ -25,6 +25,8 @@ For a persistent installation use the `setup.sh` script. It copies the project t
 sudo ./setup.sh install    # install and start devtransfer.service
 sudo ./setup.sh update     # pull updates and restart
 ```
+`setup.sh update` also rebuilds the CLI binary so users can download the latest
+version from `/cli/devtrans`.
 
 ## Accessing the Admin Interface
 

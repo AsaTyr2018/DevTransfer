@@ -12,6 +12,7 @@ The server currently targets **Linux** while the client runs on **Windows and Li
 - Web admin panel to create or revoke tokens and inspect uploads
 - Installer scripts for Linux and Windows
 - Admin interface disabled when the default credentials from `server.yml` are still in use
+- Server hosts the latest CLI binary and supports `devtrans --update`
 
 ## Server Setup
 
