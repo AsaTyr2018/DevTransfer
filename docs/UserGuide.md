@@ -76,6 +76,17 @@ devtrans get CODE
 
 Files are saved with their original name. One‑time shares are removed after the first successful download.
 
+## Updating the CLI
+
+Check for a newer version with:
+
+```bash
+devtrans --update
+```
+
+The command downloads the latest binary from the server and replaces the current executable.
+After running an upload, the client also notifies you when a new version is available.
+
 ## Web Dashboard
 
 Open the base URL of the DevTrans server in your browser. Enter your token on
