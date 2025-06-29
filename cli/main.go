@@ -9,12 +9,23 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
 type UploadResp struct {
 	Code   string `json:"code"`
 	URL    string `json:"url"`
 	Expiry string `json:"expiry"`
+}
+
+func formatExpiry(ts string) string {
+	base := strings.Split(ts, ".")[0]
+	t, err := time.ParseInLocation("2006-01-02T15:04:05", base, time.UTC)
+	if err != nil {
+		return ts
+	}
+	return t.Format("2006-01-02 15:04 MST")
 }
 
 func usage() {
@@ -77,7 +88,13 @@ func main() {
 		}
 		var r UploadResp
 		json.NewDecoder(resp.Body).Decode(&r)
-		fmt.Printf("Code: %s\nURL: %s\nExpiry: %s\n", r.Code, r.URL, r.Expiry)
+
+		exp := formatExpiry(r.Expiry)
+		fmt.Println("=== DevTrans Upload ===")
+		fmt.Printf(" Code:   %s\n", r.Code)
+		fmt.Printf(" URL:    %s\n", r.URL)
+		fmt.Printf(" Expires: %s\n", exp)
+		fmt.Println("=======================")
 
 	case "get":
 		code := os.Args[2]
