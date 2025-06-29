@@ -198,9 +198,42 @@ async def upload_file(
 
     return {
         "code": code,
-        "url": f"{config['server']['base_url']}/download/{code}",
+        "url": f"{config['server']['base_url']}/d/{code}",
         "expiry": expiry.isoformat(),
     }
+
+
+@app.get("/d/{code}", response_class=HTMLResponse)
+async def download_page(request: Request, code: str):
+    """Display a confirmation page before downloading the file."""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT filename, expiry FROM files WHERE code=?", (code,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="File not found")
+    expiry = datetime.utcfromtimestamp(row["expiry"])
+    if datetime.utcnow() > expiry:
+        cur.execute("SELECT path FROM files WHERE code=?", (code,))
+        p = cur.fetchone()
+        if p and os.path.exists(p["path"]):
+            os.remove(p["path"])
+        cur.execute("DELETE FROM files WHERE code=?", (code,))
+        conn.commit()
+        conn.close()
+        raise HTTPException(status_code=404, detail="File expired")
+    filename = row["filename"]
+    conn.close()
+    return templates.TemplateResponse(
+        "download.html",
+        {
+            "request": request,
+            "code": code,
+            "filename": filename,
+            "expiry": expiry.isoformat(),
+        },
+    )
 
 
 @app.get("/download/{code}")
@@ -436,7 +469,7 @@ async def user_dashboard(request: Request):
     files = [
         {
             "filename": r["filename"],
-            "url": f"{config['server']['base_url']}/download/{r['code']}",
+            "url": f"{config['server']['base_url']}/d/{r['code']}",
             "expiry": datetime.utcfromtimestamp(r["expiry"]).isoformat(),
         }
         for r in rows
