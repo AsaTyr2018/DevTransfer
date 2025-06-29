@@ -6,7 +6,9 @@ This guide explains how to transfer files using the DevTrans CLI.
 
 - [Go](https://go.dev/) if you need to build the CLI from source.
 - A valid upload token issued by your administrator.
-- Optional: adjust `DEVTRANS_BASE_URL` to point at your DevTrans server.
+- Optional: adjust the `base_url` in `/opt/DevTransClient/config` (or
+  `C:\DevTransClient\config` on Windows) if the server is not running on
+  `http://localhost:8000`.
 
 ## Building the CLI
 
@@ -24,9 +26,15 @@ This produces the `devtrans` binary in the same directory.
 
 ## Uploading Files
 
-1. Set the environment variable `DEVTRANS_TOKEN` to the token string provided by your administrator.
-2. Optional: set `DEVTRANS_BASE_URL` if the server is not running on `http://localhost:8000`.
-3. Run the upload command. Use `./devtrans` on Linux/macOS or `devtrans.exe` on
+1. Create `/opt/DevTransClient/config` (Windows: `C:\DevTransClient\config`) containing:
+
+   ```
+   token=YOUR_TOKEN
+   base_url=http://localhost:8000
+   ```
+
+   Environment variables `DEVTRANS_TOKEN` and `DEVTRANS_BASE_URL` override these values if set.
+2. Run the upload command. Use `./devtrans` on Linux/macOS or `devtrans.exe` on
    Windows:
 
 ```bash

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Installs DevTrans CLI on Linux and configures system-wide environment variables
+# Installs DevTrans CLI on Linux and writes configuration under /opt/DevTransClient
 # Requires root privileges.
 set -e
 
@@ -24,11 +24,11 @@ read -p "Enter your DEVTRANS_TOKEN: " DEVTRANS_TOKEN
 read -p "Enter DEVTRANS_BASE_URL [http://localhost:8000]: " DEVTRANS_BASE_URL
 DEVTRANS_BASE_URL=${DEVTRANS_BASE_URL:-http://localhost:8000}
 
-cat >/etc/profile.d/devtrans.sh <<EOVARS
-export DEVTRANS_TOKEN="${DEVTRANS_TOKEN}"
-export DEVTRANS_BASE_URL="${DEVTRANS_BASE_URL}"
-EOVARS
+CONFIG_DIR=/opt/DevTransClient
+mkdir -p "$CONFIG_DIR"
+cat >"$CONFIG_DIR/config" <<EOF
+token=${DEVTRANS_TOKEN}
+base_url=${DEVTRANS_BASE_URL}
+EOF
 
-chmod 644 /etc/profile.d/devtrans.sh
-
-echo "DevTrans installed. Open a new shell to use 'devtrans'."
+echo "DevTrans installed. Configuration written to $CONFIG_DIR/config"
