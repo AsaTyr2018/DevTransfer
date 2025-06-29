@@ -57,7 +57,7 @@ devtrans get 7K9MvX                   # downloads & deletes (oneshot)
 | Create Token | Form field **“Name”** → generates a cryptographically strong random token → instantly adds a row to the table. |
 | Delete Token | “Delete” button removes the token, invalidating future uploads that use it.                                    |
 
-*The panel is served at `/admin`, protected by HTTP Basic Auth with the credentials from the config.*
+*The panel is served at `/admin`. Unauthenticated visitors see a login form. After successful username/password authentication from the config, a session cookie is set.*
 
 ---
 
@@ -95,7 +95,7 @@ admin_users:
 | Web Admin     | FastAPI templating + HTMX/Alpine.js          |
 | Database      | SQLite for metadata & tokens                 |
 | File Store    | Local filesystem                             |
-| Auth (admin)  | HTTP Basic (hashed passwords in config)      |
+| Auth (admin)  | Login form with session cookie (credentials from config) |
 | Auth (upload) | Random 32-byte tokens created in Admin Panel |
 
 ---

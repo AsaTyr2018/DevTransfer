@@ -16,7 +16,7 @@ Adjust `base_url`, `storage_dir` and `expiry_hours` as needed.
 
 ## Admin Authentication
 
-Admin credentials are defined under `admin_users` in `server.yml`. The Web Admin Panel uses HTTP Basic authentication.
+Admin credentials are defined under `admin_users` in `server.yml`. Unauthenticated visitors to `/admin` are redirected to a login form. After entering a valid username and password they receive a session cookie allowing access to the panel.
 
 ## Web Admin Panel
 
