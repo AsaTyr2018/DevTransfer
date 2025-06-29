@@ -86,6 +86,7 @@ devtrans --update
 
 The command downloads the latest binary from the server and replaces the current executable.
 After running an upload, the client also notifies you when a new version is available.
+
 You can also fetch the binary manually from `<base_url>/cli/devtrans`.
 
 ## Web Dashboard
