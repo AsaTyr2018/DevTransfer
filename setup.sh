@@ -27,7 +27,7 @@ install_devtransfer() {
         else
             mkdir -p "$INSTALL_DIR"
         fi
-        rsync -a --delete --exclude '.git' "$SRC_DIR/" "$INSTALL_DIR/"
+        rsync -a --delete "$SRC_DIR/" "$INSTALL_DIR/"
     fi
 
     if [ ! -d "$VENVDIR" ]; then
@@ -68,7 +68,7 @@ update_devtransfer() {
         git -C "$INSTALL_DIR" pull
     else
         SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
-        rsync -a --delete --exclude '.git' "$SRC_DIR/" "$INSTALL_DIR/"
+        rsync -a --delete "$SRC_DIR/" "$INSTALL_DIR/"
     fi
 
     "$VENVDIR/bin/pip" install -r "$INSTALL_DIR/requirements.txt"
