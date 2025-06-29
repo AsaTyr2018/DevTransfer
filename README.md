@@ -15,7 +15,8 @@ uvicorn server.main:app --host 0.0.0.0 --reload
 ```
 
 Visit `http://localhost:8000/admin` and log in with the credentials from
-`server.yml` when prompted.
+`server.yml` when prompted. The panel lets you manage upload tokens as well as
+additional admin accounts and existing uploads.
 
 ## Building the CLI
 
