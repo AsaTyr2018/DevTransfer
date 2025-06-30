@@ -17,6 +17,13 @@ The server currently targets **Linux** while the client runs on **Windows and Li
 ## Server Setup
 
 The server runs only on Linux. Choose one of the following methods to start it.
+This project runs on Go
+
+Install first:
+```bash
+sudo apt update
+sudo apt-get install golang-go
+```
 
 **Important:** The admin panel is locked if `server.yml` still contains the bundled example credentials. Edit the file before deployment.
 
